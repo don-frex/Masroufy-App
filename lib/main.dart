@@ -25,9 +25,40 @@ class Expense {
   });
 }
 
+class UserSettings {
+  String userName;
+  String currencySymbol;
+  double? monthlySalary;
+
+  UserSettings({
+    this.userName = 'User',
+    this.currencySymbol = '\$',
+    this.monthlySalary,
+  });
+
+  String formatCurrency(double amount) {
+    return '$currencySymbol${amount.toStringAsFixed(2)}';
+  }
+}
+
 // Main App
-class ExpenseTrackerApp extends StatelessWidget {
+class ExpenseTrackerApp extends StatefulWidget {
   const ExpenseTrackerApp({super.key});
+
+  @override
+  State<ExpenseTrackerApp> createState() => _ExpenseTrackerAppState();
+}
+
+class _ExpenseTrackerAppState extends State<ExpenseTrackerApp> {
+  final UserSettings _settings = UserSettings();
+
+  void _updateSettings(UserSettings newSettings) {
+    setState(() {
+      _settings.userName = newSettings.userName;
+      _settings.currencySymbol = newSettings.currencySymbol;
+      _settings.monthlySalary = newSettings.monthlySalary;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -36,19 +67,35 @@ class ExpenseTrackerApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(
-          seedColor: Colors.deepPurple,
+          seedColor: const Color(0xFF6366F1),
           brightness: Brightness.light,
         ),
         useMaterial3: true,
+        cardTheme: const CardThemeData(
+          elevation: 0,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.all(Radius.circular(16)),
+          ),
+        ),
       ),
-      home: const ExpenseTrackerHome(),
+      home: ExpenseTrackerHome(
+        settings: _settings,
+        onUpdateSettings: _updateSettings,
+      ),
     );
   }
 }
 
 // Home Screen with State Management
 class ExpenseTrackerHome extends StatefulWidget {
-  const ExpenseTrackerHome({super.key});
+  final UserSettings settings;
+  final Function(UserSettings) onUpdateSettings;
+
+  const ExpenseTrackerHome({
+    super.key,
+    required this.settings,
+    required this.onUpdateSettings,
+  });
 
   @override
   State<ExpenseTrackerHome> createState() => _ExpenseTrackerHomeState();
@@ -118,11 +165,13 @@ class _ExpenseTrackerHomeState extends State<ExpenseTrackerHome> {
           return expenseDate.isAtSameMomentAs(today);
         case TimeFilter.week:
           final weekAgo = today.subtract(const Duration(days: 7));
-          return expenseDate.isAfter(weekAgo.subtract(const Duration(days: 1))) &&
+          return expenseDate
+                  .isAfter(weekAgo.subtract(const Duration(days: 1))) &&
               expenseDate.isBefore(today.add(const Duration(days: 1)));
         case TimeFilter.month:
           final monthAgo = DateTime(now.year, now.month - 1, now.day);
-          return expenseDate.isAfter(monthAgo.subtract(const Duration(days: 1)));
+          return expenseDate
+              .isAfter(monthAgo.subtract(const Duration(days: 1)));
       }
     }).toList()
       ..sort((a, b) => b.date.compareTo(a.date));
@@ -152,6 +201,19 @@ class _ExpenseTrackerHomeState extends State<ExpenseTrackerHome> {
       backgroundColor: Colors.transparent,
       builder: (context) => AddExpenseModal(
         onAddExpense: _addExpense,
+        settings: widget.settings,
+      ),
+    );
+  }
+
+  void _navigateToSettings() async {
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => SettingsScreen(
+          settings: widget.settings,
+          onSave: widget.onUpdateSettings,
+        ),
       ),
     );
   }
@@ -163,13 +225,20 @@ class _ExpenseTrackerHomeState extends State<ExpenseTrackerHome> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Expense Tracker'),
-        centerTitle: true,
+        title: Text('Hello, ${widget.settings.userName}'),
+        centerTitle: false,
         elevation: 0,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.settings_outlined),
+            onPressed: _navigateToSettings,
+            tooltip: 'Settings',
+          ),
+        ],
       ),
       body: Column(
         children: [
-          // Total Spent Card
+          // Total Spent Card with Budget Progress
           Container(
             width: double.infinity,
             margin: const EdgeInsets.all(16),
@@ -186,32 +255,95 @@ class _ExpenseTrackerHomeState extends State<ExpenseTrackerHome> {
               borderRadius: BorderRadius.circular(20),
               boxShadow: [
                 BoxShadow(
-                  color: Theme.of(context).colorScheme.primary.withOpacity(0.3),
-                  blurRadius: 10,
-                  offset: const Offset(0, 4),
+                  color: Theme.of(context).colorScheme.primary.withOpacity(0.2),
+                  blurRadius: 12,
+                  offset: const Offset(0, 6),
                 ),
               ],
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  'Total Spent',
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: Theme.of(context).colorScheme.onPrimaryContainer,
-                    fontWeight: FontWeight.w500,
-                  ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Total Spent',
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: Theme.of(context).colorScheme.onPrimaryContainer,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    if (widget.settings.monthlySalary != null)
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 6,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Theme.of(context)
+                              .colorScheme
+                              .surface
+                              .withOpacity(0.3),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Text(
+                          'Budget: ${widget.settings.formatCurrency(widget.settings.monthlySalary!)}',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Theme.of(context)
+                                .colorScheme
+                                .onPrimaryContainer,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                  ],
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: 12),
                 Text(
-                  '\$${total.toStringAsFixed(2)}',
+                  widget.settings.formatCurrency(total),
                   style: TextStyle(
-                    fontSize: 36,
+                    fontSize: 40,
                     fontWeight: FontWeight.bold,
                     color: Theme.of(context).colorScheme.onPrimaryContainer,
+                    letterSpacing: -1,
                   ),
                 ),
+                if (widget.settings.monthlySalary != null)
+                  const SizedBox(height: 16),
+                if (widget.settings.monthlySalary != null)
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(8),
+                    child: LinearProgressIndicator(
+                      value: (total / widget.settings.monthlySalary!)
+                          .clamp(0.0, 1.0),
+                      minHeight: 8,
+                      backgroundColor: Theme.of(context)
+                          .colorScheme
+                          .surface
+                          .withOpacity(0.3),
+                      valueColor: AlwaysStoppedAnimation<Color>(
+                        total > widget.settings.monthlySalary!
+                            ? Colors.red
+                            : Theme.of(context).colorScheme.onPrimaryContainer,
+                      ),
+                    ),
+                  ),
+                if (widget.settings.monthlySalary != null)
+                  const SizedBox(height: 8),
+                if (widget.settings.monthlySalary != null)
+                  Text(
+                    total > widget.settings.monthlySalary!
+                        ? '${((total / widget.settings.monthlySalary!) * 100).toStringAsFixed(0)}% over budget!'
+                        : '${((total / widget.settings.monthlySalary!) * 100).toStringAsFixed(0)}% of budget used',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Theme.of(context).colorScheme.onPrimaryContainer,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
               ],
             ),
           ),
@@ -265,7 +397,8 @@ class _ExpenseTrackerHomeState extends State<ExpenseTrackerHome> {
                           'No expenses found',
                           style: TextStyle(
                             fontSize: 18,
-                            color: Theme.of(context).colorScheme.onSurfaceVariant,
+                            color:
+                                Theme.of(context).colorScheme.onSurfaceVariant,
                           ),
                         ),
                         const SizedBox(height: 8),
@@ -287,6 +420,7 @@ class _ExpenseTrackerHomeState extends State<ExpenseTrackerHome> {
                       return ExpenseListItem(
                         expense: expense,
                         onDelete: () => _deleteExpense(expense.id),
+                        settings: widget.settings,
                       );
                     },
                   ),
@@ -306,11 +440,13 @@ class _ExpenseTrackerHomeState extends State<ExpenseTrackerHome> {
 class ExpenseListItem extends StatelessWidget {
   final Expense expense;
   final VoidCallback onDelete;
+  final UserSettings settings;
 
   const ExpenseListItem({
     super.key,
     required this.expense,
     required this.onDelete,
+    required this.settings,
   });
 
   IconData _getCategoryIcon() {
@@ -341,15 +477,25 @@ class ExpenseListItem extends StatelessWidget {
 
   String _formatDate(DateTime date) {
     final months = [
-      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec'
     ];
     return '${months[date.month - 1]} ${date.day.toString().padLeft(2, '0')}, ${date.year}';
   }
 
   String _getCategoryName() {
-    return expense.category.name[0].toUpperCase() + 
-           expense.category.name.substring(1);
+    return expense.category.name[0].toUpperCase() +
+        expense.category.name.substring(1);
   }
 
   @override
@@ -391,7 +537,8 @@ class ExpenseListItem extends StatelessWidget {
           ),
         ),
         child: ListTile(
-          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          contentPadding:
+              const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           leading: CircleAvatar(
             backgroundColor: _getCategoryColor(context).withOpacity(0.2),
             child: Icon(
@@ -429,7 +576,7 @@ class ExpenseListItem extends StatelessWidget {
             ],
           ),
           trailing: Text(
-            '\$${expense.amount.toStringAsFixed(2)}',
+            settings.formatCurrency(expense.amount),
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
@@ -445,10 +592,12 @@ class ExpenseListItem extends StatelessWidget {
 // Add Expense Modal Bottom Sheet
 class AddExpenseModal extends StatefulWidget {
   final Function(Expense) onAddExpense;
+  final UserSettings settings;
 
   const AddExpenseModal({
     super.key,
     required this.onAddExpense,
+    required this.settings,
   });
 
   @override
@@ -490,8 +639,18 @@ class _AddExpenseModalState extends State<AddExpenseModal> {
 
   String _formatDate(DateTime date) {
     final months = [
-      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec'
     ];
     return '${months[date.month - 1]} ${date.day.toString().padLeft(2, '0')}, ${date.year}';
   }
@@ -544,7 +703,10 @@ class _AddExpenseModalState extends State<AddExpenseModal> {
                     width: 40,
                     height: 4,
                     decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.onSurfaceVariant.withOpacity(0.4),
+                      color: Theme.of(context)
+                          .colorScheme
+                          .onSurfaceVariant
+                          .withOpacity(0.4),
                       borderRadius: BorderRadius.circular(2),
                     ),
                   ),
@@ -555,8 +717,8 @@ class _AddExpenseModalState extends State<AddExpenseModal> {
                 Text(
                   'Add New Expense',
                   style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
+                        fontWeight: FontWeight.bold,
+                      ),
                 ),
                 const SizedBox(height: 24),
 
@@ -583,7 +745,8 @@ class _AddExpenseModalState extends State<AddExpenseModal> {
                 // Amount Field
                 TextFormField(
                   controller: _amountController,
-                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                  keyboardType:
+                      const TextInputType.numberWithOptions(decimal: true),
                   decoration: InputDecoration(
                     labelText: 'Amount',
                     hintText: 'Enter amount',
@@ -636,7 +799,8 @@ class _AddExpenseModalState extends State<AddExpenseModal> {
                     return DropdownMenuItem(
                       value: category,
                       child: Text(
-                        category.name[0].toUpperCase() + category.name.substring(1),
+                        category.name[0].toUpperCase() +
+                            category.name.substring(1),
                       ),
                     );
                   }).toList(),
@@ -671,6 +835,285 @@ class _AddExpenseModalState extends State<AddExpenseModal> {
               ],
             ),
           ),
+        ),
+      ),
+    );
+  }
+}
+
+// Settings Screen
+class SettingsScreen extends StatefulWidget {
+  final UserSettings settings;
+  final Function(UserSettings) onSave;
+
+  const SettingsScreen({
+    super.key,
+    required this.settings,
+    required this.onSave,
+  });
+
+  @override
+  State<SettingsScreen> createState() => _SettingsScreenState();
+}
+
+class _SettingsScreenState extends State<SettingsScreen> {
+  final _formKey = GlobalKey<FormState>();
+  late TextEditingController _nameController;
+  late TextEditingController _salaryController;
+  late String _selectedCurrency;
+
+  final List<Map<String, String>> _currencies = [
+    {'symbol': '\$', 'name': 'US Dollar (USD)'},
+    {'symbol': '€', 'name': 'Euro (EUR)'},
+    {'symbol': '£', 'name': 'British Pound (GBP)'},
+    {'symbol': '¥', 'name': 'Japanese Yen (JPY)'},
+    {'symbol': '₹', 'name': 'Indian Rupee (INR)'},
+    {'symbol': 'C\$', 'name': 'Canadian Dollar (CAD)'},
+    {'symbol': 'A\$', 'name': 'Australian Dollar (AUD)'},
+    {'symbol': 'CHF', 'name': 'Swiss Franc (CHF)'},
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+    _nameController = TextEditingController(text: widget.settings.userName);
+    _salaryController = TextEditingController(
+      text: widget.settings.monthlySalary?.toString() ?? '',
+    );
+    _selectedCurrency = widget.settings.currencySymbol;
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _salaryController.dispose();
+    super.dispose();
+  }
+
+  void _saveSettings() {
+    if (_formKey.currentState!.validate()) {
+      final updatedSettings = UserSettings(
+        userName: _nameController.text.trim(),
+        currencySymbol: _selectedCurrency,
+        monthlySalary: _salaryController.text.trim().isEmpty
+            ? null
+            : double.parse(_salaryController.text.trim()),
+      );
+
+      widget.onSave(updatedSettings);
+      Navigator.pop(context);
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Settings saved successfully'),
+          duration: Duration(seconds: 2),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Settings'),
+        elevation: 0,
+      ),
+      body: Form(
+        key: _formKey,
+        child: ListView(
+          padding: const EdgeInsets.all(16),
+          children: [
+            Card(
+              child: Padding(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color:
+                                Theme.of(context).colorScheme.primaryContainer,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Icon(
+                            Icons.person,
+                            color: Theme.of(context).colorScheme.primary,
+                            size: 28,
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        Text(
+                          'Profile',
+                          style:
+                              Theme.of(context).textTheme.titleLarge?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 20),
+                    TextFormField(
+                      controller: _nameController,
+                      decoration: InputDecoration(
+                        labelText: 'Your Name',
+                        hintText: 'Enter your name',
+                        prefixIcon: const Icon(Icons.account_circle),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      validator: (value) {
+                        if (value == null || value.trim().isEmpty) {
+                          return 'Please enter your name';
+                        }
+                        return null;
+                      },
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+            Card(
+              child: Padding(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: Theme.of(context)
+                                .colorScheme
+                                .secondaryContainer,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Icon(
+                            Icons.attach_money,
+                            color: Theme.of(context).colorScheme.secondary,
+                            size: 28,
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        Text(
+                          'Currency',
+                          style:
+                              Theme.of(context).textTheme.titleLarge?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 20),
+                    DropdownButtonFormField<String>(
+                      value: _selectedCurrency,
+                      decoration: InputDecoration(
+                        labelText: 'Select Currency',
+                        prefixIcon: const Icon(Icons.currency_exchange),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      items: _currencies.map((currency) {
+                        return DropdownMenuItem(
+                          value: currency['symbol'],
+                          child: Text(
+                              '${currency['symbol']} - ${currency['name']}'),
+                        );
+                      }).toList(),
+                      onChanged: (value) {
+                        if (value != null) {
+                          setState(() {
+                            _selectedCurrency = value;
+                          });
+                        }
+                      },
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+            Card(
+              child: Padding(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color:
+                                Theme.of(context).colorScheme.tertiaryContainer,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Icon(
+                            Icons.account_balance_wallet,
+                            color: Theme.of(context).colorScheme.tertiary,
+                            size: 28,
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        Text(
+                          'Budget',
+                          style:
+                              Theme.of(context).textTheme.titleLarge?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 20),
+                    TextFormField(
+                      controller: _salaryController,
+                      keyboardType:
+                          const TextInputType.numberWithOptions(decimal: true),
+                      decoration: InputDecoration(
+                        labelText: 'Monthly Salary (Optional)',
+                        hintText: 'Enter your monthly salary',
+                        prefixIcon: const Icon(Icons.payments),
+                        helperText:
+                            'Set your monthly budget to track spending progress',
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      validator: (value) {
+                        if (value != null && value.trim().isNotEmpty) {
+                          final amount = double.tryParse(value);
+                          if (amount == null || amount <= 0) {
+                            return 'Please enter a valid amount';
+                          }
+                        }
+                        return null;
+                      },
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 24),
+            FilledButton.icon(
+              onPressed: _saveSettings,
+              icon: const Icon(Icons.save),
+              label: const Text('Save Settings'),
+              style: FilledButton.styleFrom(
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );
