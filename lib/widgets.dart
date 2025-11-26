@@ -211,11 +211,13 @@ class FilterTabs extends StatelessWidget {
 class SummaryCard extends StatelessWidget {
   final double totalSpent;
   final double income;
+  final String currencySymbol;
 
   const SummaryCard({
     super.key,
     required this.totalSpent,
     required this.income,
+    required this.currencySymbol,
   });
 
   @override
@@ -301,7 +303,7 @@ class SummaryCard extends StatelessWidget {
         ),
         const SizedBox(height: 4),
         Text(
-          '\$${amount.toStringAsFixed(2)}',
+          '$currencySymbol${amount.toStringAsFixed(2)}',
           style: const TextStyle(
             fontSize: 20,
             fontWeight: FontWeight.bold,

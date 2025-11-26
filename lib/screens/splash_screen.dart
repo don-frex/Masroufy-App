@@ -42,7 +42,7 @@ class SplashScreen extends StatelessWidget {
             const SizedBox(height: 40),
             // Title
             const Text(
-              'Expense Tracker',
+              'Masroufy',
               style: TextStyle(
                 fontSize: 32,
                 fontWeight: FontWeight.bold,

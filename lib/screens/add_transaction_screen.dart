@@ -123,162 +123,177 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
           ),
           const SizedBox(height: 32),
 
-          // Amount Input
-          Center(
-            child: Column(
-              children: [
-                const Text(
-                  'Amount',
-                  style: TextStyle(
-                    color: Colors.grey,
-                    fontSize: 16,
-                  ),
-                ),
-                TextField(
-                  controller: _amountController,
-                  keyboardType:
-                      const TextInputType.numberWithOptions(decimal: true),
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    fontSize: 48,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF2D3436),
-                  ),
-                  decoration: const InputDecoration(
-                    border: InputBorder.none,
-                    hintText: '\$0.00',
-                    hintStyle: TextStyle(color: Colors.grey),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 32),
-
-          // Category Dropdown
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-            decoration: BoxDecoration(
-              color: const Color(0xFFF5F7FA),
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: DropdownButtonHideUnderline(
-              child: DropdownButton<ExpenseCategory>(
-                value: _selectedCategory,
-                isExpanded: true,
-                icon: const Icon(CupertinoIcons.chevron_down, size: 20),
-                onChanged: (ExpenseCategory? newValue) {
-                  if (newValue != null) {
-                    setState(() {
-                      _selectedCategory = newValue;
-                    });
-                  }
-                },
-                items: ExpenseCategory.values.map((category) {
-                  return DropdownMenuItem(
-                    value: category,
-                    child: Row(
+          Expanded(
+            child: SingleChildScrollView(
+              child: Column(
+                children: [
+                  // Amount Input
+                  Center(
+                    child: Column(
                       children: [
-                        Container(
-                          padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFB4E50D).withOpacity(0.2),
-                            shape: BoxShape.circle,
-                          ),
-                          child: Icon(
-                            _getCategoryIcon(category),
-                            color: const Color(0xFFB4E50D),
-                            size: 16,
+                        const Text(
+                          'Amount',
+                          style: TextStyle(
+                            color: Colors.grey,
+                            fontSize: 16,
                           ),
                         ),
-                        const SizedBox(width: 12),
-                        Text(
-                          category.name[0].toUpperCase() +
-                              category.name.substring(1),
+                        TextField(
+                          controller: _amountController,
+                          keyboardType: const TextInputType.numberWithOptions(
+                              decimal: true),
+                          textAlign: TextAlign.center,
                           style: const TextStyle(
-                            fontSize: 16,
+                            fontSize: 48,
+                            fontWeight: FontWeight.bold,
                             color: Color(0xFF2D3436),
-                            fontWeight: FontWeight.w500,
+                          ),
+                          decoration: const InputDecoration(
+                            border: InputBorder.none,
+                            hintText: '\$0.00',
+                            hintStyle: TextStyle(color: Colors.grey),
                           ),
                         ),
                       ],
                     ),
-                  );
-                }).toList(),
-              ),
-            ),
-          ),
-          const SizedBox(height: 24),
+                  ),
+                  const SizedBox(height: 32),
 
-          // Title Input
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            decoration: BoxDecoration(
-              color: const Color(0xFFF5F7FA),
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: TextField(
-              controller: _titleController,
-              decoration: const InputDecoration(
-                border: InputBorder.none,
-                hintText: 'Note (e.g. Lunch)',
-                icon: Icon(CupertinoIcons.pencil, color: Colors.grey),
-              ),
-            ),
-          ),
-          const SizedBox(height: 24),
-
-          // Date Picker
-          GestureDetector(
-            onTap: _pickDate,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              decoration: BoxDecoration(
-                color: const Color(0xFFF5F7FA),
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: Row(
-                children: [
-                  const Icon(CupertinoIcons.calendar, color: Colors.grey),
-                  const SizedBox(width: 12),
-                  Text(
-                    _selectedDate == null
-                        ? 'Select Date'
-                        : _formatDate(_selectedDate!),
-                    style: TextStyle(
-                      fontSize: 16,
-                      color: _selectedDate == null
-                          ? Colors.grey
-                          : const Color(0xFF2D3436),
+                  // Category Dropdown
+                  Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF5F7FA),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: DropdownButtonHideUnderline(
+                      child: DropdownButton<ExpenseCategory>(
+                        value: _selectedCategory,
+                        isExpanded: true,
+                        icon: const Icon(CupertinoIcons.chevron_down, size: 20),
+                        onChanged: (ExpenseCategory? newValue) {
+                          if (newValue != null) {
+                            setState(() {
+                              _selectedCategory = newValue;
+                            });
+                          }
+                        },
+                        items: ExpenseCategory.values.map((category) {
+                          return DropdownMenuItem(
+                            value: category,
+                            child: Row(
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.all(8),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFFB4E50D)
+                                        .withOpacity(0.2),
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: Icon(
+                                    _getCategoryIcon(category),
+                                    color: const Color(0xFFB4E50D),
+                                    size: 16,
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                Text(
+                                  category.name[0].toUpperCase() +
+                                      category.name.substring(1),
+                                  style: const TextStyle(
+                                    fontSize: 16,
+                                    color: Color(0xFF2D3436),
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        }).toList(),
+                      ),
                     ),
                   ),
+                  const SizedBox(height: 24),
+
+                  // Title Input
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 12),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF5F7FA),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: TextField(
+                      controller: _titleController,
+                      decoration: const InputDecoration(
+                        border: InputBorder.none,
+                        hintText: 'Note (e.g. Lunch)',
+                        icon: Icon(CupertinoIcons.pencil, color: Colors.grey),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+
+                  // Date Picker
+                  GestureDetector(
+                    onTap: _pickDate,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 12),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF5F7FA),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Row(
+                        children: [
+                          const Icon(CupertinoIcons.calendar,
+                              color: Colors.grey),
+                          const SizedBox(width: 12),
+                          Text(
+                            _selectedDate == null
+                                ? 'Select Date'
+                                : _formatDate(_selectedDate!),
+                            style: TextStyle(
+                              fontSize: 16,
+                              color: _selectedDate == null
+                                  ? Colors.grey
+                                  : const Color(0xFF2D3436),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+
+                  // Payment Type
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: const Text(
+                      'Payment Type',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xFF2D3436),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Row(
+                    children: [
+                      _buildPaymentTypeOption('Cash'),
+                      const SizedBox(width: 12),
+                      _buildPaymentTypeOption('Credit/Debit'),
+                      const SizedBox(width: 12),
+                      _buildPaymentTypeOption('Check'),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
                 ],
               ),
             ),
           ),
-          const SizedBox(height: 24),
-
-          // Payment Type
-          const Text(
-            'Payment Type',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
-              color: Color(0xFF2D3436),
-            ),
-          ),
-          const SizedBox(height: 16),
-          Row(
-            children: [
-              _buildPaymentTypeOption('Cash'),
-              const SizedBox(width: 12),
-              _buildPaymentTypeOption('Credit/Debit'),
-              const SizedBox(width: 12),
-              _buildPaymentTypeOption('Check'),
-            ],
-          ),
-
-          const Spacer(),
 
           // Buttons
           Row(

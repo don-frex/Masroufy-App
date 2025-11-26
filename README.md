@@ -1,6 +1,6 @@
-# Expense Tracker
+# Masroufy
 
-A single-file Flutter expense tracker application with Material 3 design.
+A single-file Flutter Masroufy application with Material 3 design.
 
 ## Features
 

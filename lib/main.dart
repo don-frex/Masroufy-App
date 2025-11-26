@@ -3,8 +3,9 @@ import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'models.dart';
 import 'screens.dart';
+import 'services/storage_service.dart';
 
-void main() {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(
@@ -12,12 +13,27 @@ void main() {
       statusBarIconBrightness: Brightness.dark,
     ),
   );
-  runApp(const ExpenseTrackerApp());
+
+  // Load data
+  final expenses = await StorageService.loadExpenses();
+  final settings = await StorageService.loadSettings();
+
+  runApp(ExpenseTrackerApp(
+    initialExpenses: expenses,
+    initialSettings: settings,
+  ));
 }
 
 // Main App
 class ExpenseTrackerApp extends StatefulWidget {
-  const ExpenseTrackerApp({super.key});
+  final List<Expense>? initialExpenses;
+  final UserSettings? initialSettings;
+
+  const ExpenseTrackerApp({
+    super.key,
+    this.initialExpenses,
+    this.initialSettings,
+  });
 
   @override
   State<ExpenseTrackerApp> createState() => _ExpenseTrackerAppState();
@@ -25,21 +41,33 @@ class ExpenseTrackerApp extends StatefulWidget {
 
 class _ExpenseTrackerAppState extends State<ExpenseTrackerApp> {
   // Global State
-  UserSettings _settings = UserSettings();
+  late UserSettings _settings;
+  late List<Expense> _expenses;
   bool _showSplash = true;
   bool _isOnboarding = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _settings = widget.initialSettings ?? UserSettings();
+    _expenses = widget.initialExpenses ?? [];
+  }
 
   void _updateSettings(UserSettings newSettings) {
     setState(() {
       _settings = newSettings;
     });
+    StorageService.saveSettings(newSettings);
   }
 
   void _completeSplash() {
     setState(() {
       _showSplash = false;
-      if (_settings.isFirstTime) {
+      // If expenses is null (meaning no data found), show Welcome Page (Onboarding)
+      if (widget.initialExpenses == null) {
         _isOnboarding = true;
+      } else {
+        _isOnboarding = false;
       }
     });
   }
@@ -48,13 +76,18 @@ class _ExpenseTrackerAppState extends State<ExpenseTrackerApp> {
     setState(() {
       _settings = newSettings;
       _isOnboarding = false;
+      // Initialize expenses as empty list if it was null
+      _expenses = [];
     });
+    StorageService.saveSettings(newSettings);
+    StorageService.saveExpenses(
+        _expenses); // Save empty list to mark as initialized
   }
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Expense Tracker',
+      title: 'Masroufy',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         primarySwatch: Colors.blue,
@@ -71,6 +104,7 @@ class _ExpenseTrackerAppState extends State<ExpenseTrackerApp> {
               : ExpenseTrackerHome(
                   settings: _settings,
                   onUpdateSettings: _updateSettings,
+                  initialExpenses: _expenses,
                 ),
     );
   }

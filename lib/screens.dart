@@ -14,11 +14,13 @@ export 'screens/add_transaction_screen.dart';
 class AnalyticsScreen extends StatelessWidget {
   final List<Expense> expenses;
   final double totalSpent;
+  final UserSettings settings;
 
   const AnalyticsScreen({
     super.key,
     required this.expenses,
     required this.totalSpent,
+    required this.settings,
   });
 
   Map<ExpenseCategory, double> _calculateCategorySpending() {
@@ -142,7 +144,7 @@ class AnalyticsScreen extends StatelessWidget {
                             ),
                           ),
                           Text(
-                            '\$${entry.value.toStringAsFixed(2)}',
+                            settings.formatCurrency(entry.value),
                             style: const TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.bold,

@@ -5,16 +5,19 @@ import '../widgets.dart';
 import '../screens.dart';
 import 'settings_screen.dart';
 import 'add_transaction_screen.dart';
+import '../services/storage_service.dart';
 
 // Home Screen with State Management
 class ExpenseTrackerHome extends StatefulWidget {
   final UserSettings settings;
   final Function(UserSettings) onUpdateSettings;
+  final List<Expense> initialExpenses;
 
   const ExpenseTrackerHome({
     super.key,
     required this.settings,
     required this.onUpdateSettings,
+    this.initialExpenses = const [],
   });
 
   @override
@@ -22,13 +25,13 @@ class ExpenseTrackerHome extends StatefulWidget {
 }
 
 class _ExpenseTrackerHomeState extends State<ExpenseTrackerHome> {
-  final List<Expense> _expenses = [];
+  late List<Expense> _expenses;
   TimeFilter _selectedFilter = TimeFilter.month;
 
   @override
   void initState() {
     super.initState();
-    // Start with empty list
+    _expenses = List.from(widget.initialExpenses);
   }
 
   List<Expense> _getFilteredExpenses() {
@@ -40,11 +43,11 @@ class _ExpenseTrackerHomeState extends State<ExpenseTrackerHome> {
     return _expenses.where((expense) {
       switch (_selectedFilter) {
         case TimeFilter.today:
-          return expense.date.isAfter(today);
+          return !expense.date.isBefore(today);
         case TimeFilter.week:
-          return expense.date.isAfter(weekStart);
+          return !expense.date.isBefore(weekStart);
         case TimeFilter.month:
-          return expense.date.isAfter(monthStart);
+          return !expense.date.isBefore(monthStart);
         case TimeFilter.all:
           return true;
       }
@@ -60,12 +63,14 @@ class _ExpenseTrackerHomeState extends State<ExpenseTrackerHome> {
     setState(() {
       _expenses.add(expense);
     });
+    StorageService.saveExpenses(_expenses);
   }
 
   void _deleteExpense(String id) {
     setState(() {
       _expenses.removeWhere((item) => item.id == id);
     });
+    StorageService.saveExpenses(_expenses);
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
         content: Text('Transaction deleted'),
@@ -105,6 +110,7 @@ class _ExpenseTrackerHomeState extends State<ExpenseTrackerHome> {
         builder: (context) => AnalyticsScreen(
           expenses: _expenses,
           totalSpent: _getTotalExpense(),
+          settings: widget.settings,
         ),
       ),
     );
@@ -185,6 +191,7 @@ class _ExpenseTrackerHomeState extends State<ExpenseTrackerHome> {
                 SummaryCard(
                   totalSpent: total,
                   income: widget.settings.monthlySalary ?? 5000.0,
+                  currencySymbol: widget.settings.currencySymbol,
                 ),
 
                 const SizedBox(height: 24),

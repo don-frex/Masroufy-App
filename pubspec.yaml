@@ -1,5 +1,5 @@
 name: expenses_monthly
-description: A single-file expense tracker Flutter application.
+description: A single-file Masroufy Flutter application.
 publish_to: 'none'
 version: 1.0.0+1
 
@@ -13,6 +13,7 @@ dependencies:
   flutter_svg: ^2.2.3
   google_fonts: ^6.3.2
   fl_chart: ^1.1.1
+  shared_preferences: ^2.5.3
 
 dev_dependencies:
   flutter_test:
