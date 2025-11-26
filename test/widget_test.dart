@@ -11,20 +11,28 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:expenses_monthly/main.dart';
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
+  testWidgets('App loads and displays home screen',
+      (WidgetTester tester) async {
     // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
+    await tester.pumpWidget(const ExpenseTrackerApp());
+    await tester.pumpAndSettle();
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+    // Tap Start button on Splash Screen
+    await tester.tap(find.text('Get Started'));
+    await tester.pumpAndSettle();
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
+    // Fill Onboarding Form
+    await tester.enterText(
+        find.byType(TextFormField).first, 'Test User'); // Name
+    await tester.enterText(find.byType(TextFormField).last, '5000'); // Budget
     await tester.pump();
 
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+    // Tap Continue
+    await tester.tap(find.text('Continue'));
+    await tester.pumpAndSettle();
+
+    // Verify that the home screen is displayed
+    expect(find.text('Hello,'), findsOneWidget);
+    expect(find.text('Recent transactions'), findsOneWidget);
   });
 }
