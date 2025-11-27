@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
-import 'package:fl_chart/fl_chart.dart';
 import 'models.dart';
 
 // Reusable Scale Button for iOS-style tap effect
@@ -227,7 +226,8 @@ class SummaryCard extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 24),
       padding: const EdgeInsets.all(24),
-      height: 180,
+      // height: 180, // Removed fixed height to prevent overflow
+      constraints: const BoxConstraints(minHeight: 180),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(30),
@@ -240,43 +240,15 @@ class SummaryCard extends StatelessWidget {
         ],
       ),
       child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                _buildSummaryItem(
-                    'Income', income, Theme.of(context).primaryColor),
-                const SizedBox(height: 24),
-                _buildSummaryItem('Spent', totalSpent, const Color(0xFFEF9A9A)),
-              ],
-            ),
+          _buildSummaryItem('Income', income, Theme.of(context).primaryColor),
+          Container(
+            width: 1,
+            height: 40,
+            color: Colors.grey[300],
           ),
-          SizedBox(
-            width: 120,
-            height: 120,
-            child: PieChart(
-              PieChartData(
-                sectionsSpace: 0,
-                centerSpaceRadius: 40,
-                sections: [
-                  PieChartSectionData(
-                    color: Theme.of(context).primaryColor,
-                    value: income,
-                    radius: 20,
-                    showTitle: false,
-                  ),
-                  PieChartSectionData(
-                    color: const Color(0xFFEF9A9A),
-                    value: totalSpent,
-                    radius: 20,
-                    showTitle: false,
-                  ),
-                ],
-              ),
-            ),
-          ),
+          _buildSummaryItem('Spent', totalSpent, const Color(0xFFEF9A9A)),
         ],
       ),
     );
@@ -284,9 +256,10 @@ class SummaryCard extends StatelessWidget {
 
   Widget _buildSummaryItem(String label, double amount, Color color) {
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisAlignment: MainAxisAlignment.center,
       children: [
         Row(
+          mainAxisSize: MainAxisSize.min,
           children: [
             Container(
               width: 8,
@@ -304,11 +277,11 @@ class SummaryCard extends StatelessWidget {
             ),
           ],
         ),
-        const SizedBox(height: 4),
+        const SizedBox(height: 8),
         Text(
           '$currencySymbol${amount.toStringAsFixed(2)}',
           style: const TextStyle(
-            fontSize: 20,
+            fontSize: 24,
             fontWeight: FontWeight.bold,
             color: Color(0xFF2D3436),
           ),

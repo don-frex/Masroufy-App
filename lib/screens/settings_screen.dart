@@ -278,6 +278,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             padding: const EdgeInsets.symmetric(
                                 horizontal: 16, vertical: 8),
                             child: DropdownButtonFormField<String>(
+                              isExpanded: true,
                               value: _selectedCurrencyCode,
                               decoration: InputDecoration(
                                 labelText: 'Currency',
@@ -287,11 +288,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                     CupertinoIcons.money_dollar_circle_fill,
                                     color: _primaryColor),
                               ),
-                              items: currencyList.map((currency) {
+                              items:
+                                  (List<Map<String, String>>.from(currencyList)
+                                        ..sort((a, b) => (a['name'] ?? '')
+                                            .compareTo(b['name'] ?? '')))
+                                      .map((currency) {
                                 return DropdownMenuItem(
                                   value: currency['code'],
                                   child: Text(
-                                      '${currency['symbol']} - ${currency['name']}'),
+                                    '${currency['symbol']} - ${currency['name']}',
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
                                 );
                               }).toList(),
                               onChanged: (value) {

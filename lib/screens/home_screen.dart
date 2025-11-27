@@ -147,8 +147,8 @@ class _ExpenseTrackerHomeState extends State<ExpenseTrackerHome> {
                       Row(
                         children: [
                           Container(
-                            width: 44,
-                            height: 44,
+                            width: 48,
+                            height: 48,
                             padding: const EdgeInsets.all(2),
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
@@ -193,21 +193,47 @@ class _ExpenseTrackerHomeState extends State<ExpenseTrackerHome> {
                           ),
                         ],
                       ),
-                      Container(
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          shape: BoxShape.circle,
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.05),
-                              blurRadius: 10,
-                              offset: const Offset(0, 4),
+                      Row(
+                        children: [
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [
+                              Text(
+                                'Balance',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  color: Colors.grey[600],
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                              Text(
+                                '${widget.settings.currencySymbol}${((widget.settings.monthlySalary ?? 0) - total).toStringAsFixed(2)}',
+                                style: const TextStyle(
+                                  fontSize: 24,
+                                  fontWeight: FontWeight.bold,
+                                  color: Color(0xFF2D3436),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(width: 16),
+                          Container(
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              shape: BoxShape.circle,
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.05),
+                                  blurRadius: 10,
+                                  offset: const Offset(0, 4),
+                                ),
+                              ],
                             ),
-                          ],
-                        ),
-                        child: const Icon(CupertinoIcons.bell,
-                            color: Color(0xFF2D3436)),
+                            child: const Icon(CupertinoIcons.bell,
+                                color: Color(0xFF2D3436)),
+                          ),
+                        ],
                       ),
                     ],
                   ),
